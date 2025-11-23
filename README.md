@@ -1,144 +1,89 @@
-# NBUC-Analysis-of-BTS-Snapshot
+# NBUC – Analysis of BTS Snapshot
 
-# SETUP
+This repository contains setup instructions and usage guidelines for installing Graylog, configuring dependencies, and running the BTS Snapshot Analysis plugin.
 
-## INSTALLATION OF GRAYLOG AND ITS DEPENDENCIES 
-
-### 1. Update System
-
+# Setup
+### 1. Install Dependencies
 sudo dnf update -y
 sudo dnf install wget curl gnupg2 -y
 
-
-### 2. Install Java 17 (OpenJDK)
-
-Graylog 6+ requires Java 17.
+### 2. Install Java 17
 sudo dnf install java-17-openjdk java-17-openjdk-devel -y
-java -version
-
 
 ### 3. Install MongoDB 6.0
-
-Create the repo file:
-cat <<EOF | sudo tee /etc/yum.repos.d/mongodb-org-6.0.repo
-[mongodb-org-6.0]
-name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/6.0/x86_64/
-gpgcheck=1
-enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc
-EOF
-Then install MongoDB:
 sudo dnf install -y mongodb-org
-sudo systemctl enable mongod --now
+sudo systemctl enable --now mongod
 
-### 4. Install OpenSearch 2.x (as Elasticsearch is deprecated)
-
-Add OpenSearch repo:
-sudo rpm --import https://artifacts.opensearch.org/publickeys/opensearch.pgp
-cat <<EOF | sudo tee /etc/yum.repos.d/opensearch.repo
-[opensearch]
-name=OpenSearch repository
-baseurl=https://artifacts.opensearch.org/releases/bundle/opensearch/2.x/yum/
-gpgcheck=1
-gpgkey=https://artifacts.opensearch.org/publickeys/opensearch.pgp
-enabled=1
-autorefresh=1
-type=rpm-md
-EOF
-Install and start:
+### 4. Install OpenSearch 2.x
 sudo dnf install opensearch -y
-Graylog 6+ Installation on CentOS 9
-sudo systemctl enable opensearch.service --now
-
+sudo systemctl enable --now opensearch
 
 ### 5. Install Graylog 6.x
-
-Download the repo and install:
-sudo rpm -Uvh
-https://packages.graylog2.org/repo/packages/graylog-6.0-repository_latest.rpm
+sudo rpm -Uvh https://packages.graylog2.org/repo/packages/graylog-6.0-repository_latest.rpm
 sudo dnf install graylog-server -y
-Set the root password secret and hash in /etc/graylog/server/server.conf
-Generate password hash:
-echo -n yourpassword | sha256sum
+
+Set root password hash in:
+/etc/graylog/server/server.conf
+
+
 Start Graylog:
+
 sudo systemctl daemon-reexec
-sudo systemctl enable graylog-server --now
-Graylog will be available on: http://<your-ip>:9000
+sudo systemctl enable --now graylog-server
 
 
+Graylog UI:
+http://<server-ip>:9000
 
 # Usage
-
-After setting up the environment, here’s how to actually use the system to process BTS snapshots and interact with Graylog.
-### 1. Start the Graylog Stack
-If using Docker:
+### 1. Start the Stack (Docker Optional)
 docker compose up -d
 
-This will start:
-MongoDB
-OpenSearch
-Graylog
-Graylog UI will be available at:
-http://localhost:9000
-
-### 2. Log In to Graylog
-Default credentials:
+### 2. Log In
 Username: admin
-Password: the one corresponding to your SHA256 hash
-Once logged in, complete the initial CA setup (only on first run).
+Password: <password you hashed>
 
-### 3. Install Your Custom Snapshot Plugin
-If not already installed:
+### 3. Install Custom Plugin
+
+System installation:
+
 sudo cp target/graylog-plugin-hello-1.0.0.jar /usr/share/graylog-server/plugin/
 sudo systemctl restart graylog-server
 
-If using Docker, mount the plugin directory in docker-compose.yml:
+
+Docker (docker-compose.yml):
+
 volumes:
   - ./plugins:/usr/share/graylog/plugin
 
-Then restart:
+
+Restart:
 docker compose restart graylog
 
+### 4. Upload & Process BTS Snapshot Files
 
-### 4. Upload BTS Snapshot Files
-You can process snapshot files in two ways:
-a) Through Graylog Inputs
-Go to System → Inputs
-Choose input type (e.g., GELF UDP/TCP or FileBeat)
-Start input
-Send your snapshot log data to Graylog
-If your custom plugin extracts snapshot content automatically, simply place snapshot files in the configured directory.
+You can process snapshot files through:
+System → Inputs (GELF UDP/TCP, FileBeat, etc.)
+Plugin-configured directory (automatic extraction)
 
-### 5. View Processed Snapshot Data
+### 5. View Parsed Snapshot Data
+
 Navigate to:
 Search → Logs
-Apply filters, time range, fields
-Visualize snapshot statistics
-You can also create:
-Dashboards
-Alerts
-Pipelines
-Data transformations
 
 ### 6. Verify Plugin Execution
-To confirm your plugin is running:
-Docker
-docker logs graylog -f
 
-Systemd
+Systemd:
 sudo journalctl -u graylog-server -f
 
-You should see:
-Hello World Plugin Module Loaded!
-(or your plugin-specific log messages)
+Docker:
+docker logs graylog -f
 
-### 7. Stopping the Environment
-For Docker:
+### 7. Stop Services
+
+System install:
+sudo systemctl stop graylog-server opensearch mongod
+
+
+Docker:
 docker compose down
-
-For system installation:
-sudo systemctl stop graylog-server
-sudo systemctl stop opensearch
-sudo systemctl stop mongod
-
