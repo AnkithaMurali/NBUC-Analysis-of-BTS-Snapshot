@@ -1,24 +1,23 @@
 # NBUC-Analysis-of-BTS-Snapshot
 
-## SETUP
+# SETUP
 
-# INSTALLATION OF GRAYLOG AND ITS DEPENDENCIES 
+## INSTALLATION OF GRAYLOG AND ITS DEPENDENCIES 
 
-# 1. Update System
+### 1. Update System
 
 sudo dnf update -y
 sudo dnf install wget curl gnupg2 -y
 
 
-# 2. Install Java 17 (OpenJDK)
+### 2. Install Java 17 (OpenJDK)
 
 Graylog 6+ requires Java 17.
 sudo dnf install java-17-openjdk java-17-openjdk-devel -y
 java -version
 
 
-
-# 3. Install MongoDB 6.0
+### 3. Install MongoDB 6.0
 
 Create the repo file:
 cat <<EOF | sudo tee /etc/yum.repos.d/mongodb-org-6.0.repo
@@ -33,7 +32,7 @@ Then install MongoDB:
 sudo dnf install -y mongodb-org
 sudo systemctl enable mongod --now
 
-# 4. Install OpenSearch 2.x (as Elasticsearch is deprecated)
+### 4. Install OpenSearch 2.x (as Elasticsearch is deprecated)
 
 Add OpenSearch repo:
 sudo rpm --import https://artifacts.opensearch.org/publickeys/opensearch.pgp
@@ -53,7 +52,7 @@ Graylog 6+ Installation on CentOS 9
 sudo systemctl enable opensearch.service --now
 
 
-# 5. Install Graylog 6.x
+### 5. Install Graylog 6.x
 
 Download the repo and install:
 sudo rpm -Uvh
