@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'org.example.myplugin'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://downloads.graylog.org/repo/maven/" }
+}
+
+dependencies {
+    // --- Plugin & Graylog API (server classes available at compile time only) ---
+    compileOnly files('/home/vkumar/Downloads/graylog.jar')
+
+    // --- Registration helper ---
+    implementation 'com.google.auto.service:auto-service:1.1.1'
+    annotationProcessor 'com.google.auto.service:auto-service:1.1.1'
+
+    // --- GELF client (used to emit messages to Graylog) ---
+    implementation 'org.graylog2:gelfclient:1.4.0'
+
+    // --- DI / Logging / JSON ---
+    implementation 'javax.inject:javax.inject:1'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+
+    // --- Extraction stack (matches your standalone success) ---
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'commons-io:commons-io:2.16.1'
+    implementation 'org.tukaani:xz:1.9'
+
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// Avoid pulling jakarta.inject alongside javax.inject
+configurations.all {
+    exclude group: 'jakarta.inject', module: 'jakarta.inject-api'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-parameters']
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes(
+            'Plugin-Class': 'org.example.myplugin.MyLogLoaderPlugin',
+            'Plugin-Version': version,
+            'Plugin-Author': 'Ankitha',
+            'Plugin-URL': 'https://localhost',
+            'Plugin-Description': 'A plugin that loads log files into Graylog'
+        )
+    }
+}
+
+shadowJar {
+    archiveClassifier.set('all')
+    mergeServiceFiles()      // picks up META-INF/services for AutoService
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    zip64 = true
+    exclude 'jakarta/inject/**'
+}
+
+build.dependsOn shadowJar
+

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Plugin-Class: org.example.myplugin.MyLogLoaderPlugin
+Plugin-Version: 1.0.0
+Plugin-Author: Ankitha
+Plugin-URL: https://localhost
+Plugin-Description: A plugin that loads log files into Graylog
+

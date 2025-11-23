@@ -1,0 +1,2 @@
+#Sun Aug 24 02:27:52 PDT 2025
+gradle.version=8.14.2

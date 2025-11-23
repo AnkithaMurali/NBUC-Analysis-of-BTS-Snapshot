@@ -1,0 +1,6 @@
+plugin.classname=org.example.myplugin.MyLogLoaderPlugin
+plugin.version=1.0.0
+plugin.id=my-log-loader
+name=My Log Loader
+description=A plugin to load extracted_snapshot.log into Graylog
+author=Your Name
